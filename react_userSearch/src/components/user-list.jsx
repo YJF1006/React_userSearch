@@ -4,51 +4,35 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import axios from 'axios'
+import Pubsub from 'pubsub-js'
 
 export default class UserList extends React.Component {
-
-  static propTypes = {
-    searchName: PropTypes.string.isRequired
-  }
-
   state = {
     firstView: true,
     loading: false,
     users: null,
     error: null
   }
-  
-  //当组件接收到新的属性的时候回调
-componentWillReceiveProps(nextProps)  {
-    let searchName = nextProps.searchName;
-    //console.log('发送ajax请求', searchName)
-    const url = `https://api.github.com/search/users?q=${searchName}`;   //github的user接口
-    //发送请求之前更新状态为请求中
-    this.setState({ firstView: false, loading: true })   
-    // 使用axios库
-    axios.get(url)
-      .then((response) => {
-        //得到相应数据 console.log(response.data)
-        //更新状态（成功)
-        this.setState({ loading: false, users: response.data.items})
-      })
-      .catch((error)=>{
-        // debugger
-        console.log('error', error.response.data.message, error.message)
-        //更新状态为失败
-        this.setState({ loading: false, error: error.message })
-      })
-
-    // try {
-    //   const result = await axios.get(url)
-    //   this.setState({ loading: false, users: result.data.items })
-    // } catch(err) {
-    //   // debugger
-    //   console.log('----', err.message)
-    // }
+  componentDidMount(){
+    //订阅消息
+    Pubsub.subscribe('search',(msg,data)=>{
+      console.log(msg,data)   //msg:对应消息名search   data:对应接收的数据
+      //发送请求之前更新状态为请求中
+      this.setState({ firstView: false, loading: true })  
+      const url = `https://api.github.com/search/users?q=${searchName}`;   //github的user接口
+     
+      // 使用axios库
+      axios.get(url)
+        .then((response) => {
+          this.setState({ loading: false, users: response.data.items})
+        })
+        .catch((error)=>{
+          //更新状态为失败
+          this.setState({ loading: false, error: error.message })
+        })
+    })
   }
-
-  render () {
+render () {
 
     if (this.state.firstView) {
       return <h2>Enter name to search</h2>

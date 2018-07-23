@@ -3,16 +3,17 @@
  */
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
+import Pubsub from 'pubsub-js'
 
 class Search extends Component {
 
-  static propTypes = {
-    refreshName: PropTypes.func.isRequired
-  }
 
   search = () => {
-    var name = this.nameInput.value
-    this.props.refreshName(name)
+    let searchName = this.nameInput.value
+    if(searchName){
+      //发布搜索消息
+      Pubsub.publish('search',searchName)
+    }
   }
 
   render() {
